@@ -1,46 +1,94 @@
 use crate::chunk_type::ChunkType;
 use crate::{Error, Result};
+use crc::{crc32, Hasher32};
+use std::io::Read;
 
 #[derive(Debug)]
-pub struct Chunk {}
+pub struct Chunk {
+    length: u32, // NOTE: this must not exceed 2^31
+    chunk_type: ChunkType,
+    chunk_data: Vec<u8>,
+    crc: u32,
+}
 
 impl Chunk {
     pub fn length(&self) -> u32 {
-        todo!()
+        self.length
     }
 
     pub fn chunk_type(&self) -> &ChunkType {
-        todo!()
+        &self.chunk_type
     }
 
     pub fn data(&self) -> &[u8] {
-        todo!()
+        &self.chunk_data
     }
 
     pub fn crc(&self) -> u32 {
-        todo!()
+        self.crc
     }
 
     pub fn data_as_string(&self) -> Result<String> {
-        todo!()
+        Ok(String::from_utf8(self.chunk_data.clone())?)
     }
 
     pub fn as_bytes(&self) -> Vec<u8> {
-        todo!()
+        self.length
+            .to_be_bytes()
+            .iter()
+            .chain(self.chunk_type.bytes().iter())
+            .chain(self.chunk_data.iter())
+            .chain(self.crc.to_be_bytes().iter())
+            .copied()
+            .collect()
     }
 }
 
 impl std::fmt::Display for Chunk {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        todo!()
+        write!(
+            f,
+            "{}\"{}\"",
+            self.chunk_type,
+            String::from_utf8_lossy(&self.chunk_data)
+        )
     }
 }
 
 impl std::convert::TryFrom<&[u8]> for Chunk {
     type Error = Error;
 
-    fn try_from(_: &[u8]) -> Result<Chunk> {
-        todo!()
+    fn try_from(raw: &[u8]) -> Result<Chunk> {
+        let mut digest = crc32::Digest::new(crc32::IEEE);
+        let mut r = std::io::BufReader::new(raw);
+        let mut buf = [0u8; 4];
+
+        r.read_exact(&mut buf)?;
+        let length = u32::from_be_bytes(buf);
+        if length > 1 << 31 {
+            return Err(Error::InvalidChunkLength);
+        }
+
+        r.read_exact(&mut buf)?;
+        let chunk_type = ChunkType::try_from(buf)?;
+        digest.write(&buf);
+
+        let mut chunk_data = vec![0; length as usize];
+        r.read_exact(&mut chunk_data)?;
+        digest.write(&chunk_data);
+
+        r.read_exact(&mut buf)?;
+        let crc = u32::from_be_bytes(buf);
+        if digest.sum32() != crc {
+            return Err(Error::InvalidCRC);
+        }
+
+        Ok(Chunk {
+            length,
+            chunk_type,
+            chunk_data,
+            crc,
+        })
     }
 }
 
@@ -52,7 +100,7 @@ mod tests {
     fn testing_chunk() -> Chunk {
         let data_length: u32 = 42;
         let chunk_type = b"RuSt";
-        let message_bytes = "This is where your secret message will be!".as_bytes();
+        let message_bytes = b"This is where your secret message will be!";
         let crc: u32 = 2882656334;
 
         let chunk_data: Vec<u8> = data_length
@@ -97,7 +145,7 @@ mod tests {
     fn test_valid_chunk_from_bytes() {
         let data_length: u32 = 42;
         let chunk_type = b"RuSt";
-        let message_bytes = "This is where your secret message will be!".as_bytes();
+        let message_bytes = b"This is where your secret message will be!";
         let crc: u32 = 2882656334;
 
         let chunk_data: Vec<u8> = data_length
@@ -124,7 +172,7 @@ mod tests {
     fn test_invalid_chunk_from_bytes() {
         let data_length: u32 = 42;
         let chunk_type = b"RuSt";
-        let message_bytes = "This is where your secret message will be!".as_bytes();
+        let message_bytes = b"This is where your secret message will be!";
         let crc: u32 = 2882656333;
 
         let chunk_data: Vec<u8> = data_length
@@ -145,7 +193,7 @@ mod tests {
     pub fn test_chunk_trait_impls() {
         let data_length: u32 = 42;
         let chunk_type = b"RuSt";
-        let message_bytes = "This is where your secret message will be!".as_bytes();
+        let message_bytes = b"This is where your secret message will be!";
         let crc: u32 = 2882656334;
 
         let chunk_data: Vec<u8> = data_length
