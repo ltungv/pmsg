@@ -1,12 +1,57 @@
+use crate::chunk_type::ChunkType;
+use crate::{Error, Result};
+
+#[derive(Debug)]
+pub struct Chunk {}
+
+impl Chunk {
+    pub fn length(&self) -> u32 {
+        todo!()
+    }
+
+    pub fn chunk_type(&self) -> &ChunkType {
+        todo!()
+    }
+
+    pub fn data(&self) -> &[u8] {
+        todo!()
+    }
+
+    pub fn crc(&self) -> u32 {
+        todo!()
+    }
+
+    pub fn data_as_string(&self) -> Result<String> {
+        todo!()
+    }
+
+    pub fn as_bytes(&self) -> Vec<u8> {
+        todo!()
+    }
+}
+
+impl std::fmt::Display for Chunk {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        todo!()
+    }
+}
+
+impl std::convert::TryFrom<&[u8]> for Chunk {
+    type Error = Error;
+
+    fn try_from(_: &[u8]) -> Result<Chunk> {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::chunk_type::ChunkType;
-    use std::str::FromStr;
+    use std::convert::TryFrom;
 
     fn testing_chunk() -> Chunk {
         let data_length: u32 = 42;
-        let chunk_type = "RuSt".as_bytes();
+        let chunk_type = b"RuSt";
         let message_bytes = "This is where your secret message will be!".as_bytes();
         let crc: u32 = 2882656334;
 
@@ -51,7 +96,7 @@ mod tests {
     #[test]
     fn test_valid_chunk_from_bytes() {
         let data_length: u32 = 42;
-        let chunk_type = "RuSt".as_bytes();
+        let chunk_type = b"RuSt";
         let message_bytes = "This is where your secret message will be!".as_bytes();
         let crc: u32 = 2882656334;
 
@@ -78,7 +123,7 @@ mod tests {
     #[test]
     fn test_invalid_chunk_from_bytes() {
         let data_length: u32 = 42;
-        let chunk_type = "RuSt".as_bytes();
+        let chunk_type = b"RuSt";
         let message_bytes = "This is where your secret message will be!".as_bytes();
         let crc: u32 = 2882656333;
 
@@ -99,7 +144,7 @@ mod tests {
     #[test]
     pub fn test_chunk_trait_impls() {
         let data_length: u32 = 42;
-        let chunk_type = "RuSt".as_bytes();
+        let chunk_type = b"RuSt";
         let message_bytes = "This is where your secret message will be!".as_bytes();
         let crc: u32 = 2882656334;
 
