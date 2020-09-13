@@ -1,67 +1,77 @@
-const CHUNK_SIZE: usize = 4;
+use std::convert::{TryFrom, TryInto};
+
+const CHUNK_TYPE_SIZE: usize = 4;
 
 #[derive(Debug)]
-struct ChunkType {
-    bit_ancillary: bool,
-    bit_private: bool,
-    bit_reserved: bool,
-    bit_safe_to_copy: bool,
-    chunk: [u8; CHUNK_SIZE],
-}
+pub struct ChunkType([u8; CHUNK_TYPE_SIZE]);
 
 impl ChunkType {
-    fn bytes(&self) -> [u8; 4] {
-        self.chunk
+    pub fn bytes(&self) -> [u8; 4] {
+        self.0
     }
 
-    fn is_valid(&self) -> bool {
-        todo!();
+    pub fn is_critical(&self) -> bool {
+        self.0[0] >> 5 & 1 == 0
     }
 
-    fn is_critical(&self) -> bool {
-        !self.bit_ancillary
+    pub fn is_public(&self) -> bool {
+        self.0[1] >> 5 & 1 == 0
     }
 
-    fn is_public(&self) -> bool {
-        !self.bit_private
+    pub fn is_reserved_bit_valid(&self) -> bool {
+        self.0[2] >> 5 & 1 == 0
     }
 
-    fn is_reserved_bit_valid(&self) -> bool {
-        self.bit_reserved
+    pub fn is_safe_to_copy(&self) -> bool {
+        self.0[3] >> 5 & 1 == 1
     }
 
-    fn is_safe_to_copy(&self) -> bool {
-        self.bit_safe_to_copy
-    }
-}
-
-impl PartialEq for ChunkType {
-    fn eq(&self, other: &ChunkType) -> bool {
-        self.chunk == other.chunk
+    pub fn is_valid(&self) -> bool {
+        self.is_reserved_bit_valid()
     }
 }
 
 impl Eq for ChunkType {}
 
-impl std::convert::TryFrom<[u8; CHUNK_SIZE]> for ChunkType {
+impl PartialEq for ChunkType {
+    fn eq(&self, other: &ChunkType) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl TryFrom<[u8; CHUNK_TYPE_SIZE]> for ChunkType {
     type Error = crate::Error;
 
-    fn try_from(_: [u8; CHUNK_SIZE]) -> crate::Result<ChunkType> {
-        todo!()
+    fn try_from(chunk: [u8; CHUNK_TYPE_SIZE]) -> crate::Result<ChunkType> {
+        if chunk
+            .iter()
+            .any(|&b| !b.is_ascii_lowercase() && !b.is_ascii_uppercase())
+        {
+            return Err(crate::Error::InvalidChunkTypeCode);
+        }
+
+        Ok(ChunkType(chunk))
     }
 }
 
 impl std::str::FromStr for ChunkType {
     type Err = crate::Error;
 
-    fn from_str(_: &str) -> crate::Result<ChunkType> {
-        todo!()
+    fn from_str(s: &str) -> crate::Result<ChunkType> {
+        let chunk: Result<[u8; CHUNK_TYPE_SIZE], _> = s.as_bytes().try_into();
+        match chunk {
+            Err(_) => Err(crate::Error::InvalidChunkTypeCode),
+            Ok(chunk) => ChunkType::try_from(chunk),
+        }
     }
 }
 
 impl std::fmt::Display for ChunkType {
-    fn fmt(&self, _: &mut std::fmt::Formatter) -> std::fmt::Result {
-        todo!()
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", unsafe {
+            // only valid chunk type code can be created
+            std::str::from_utf8_unchecked(&self.0)
+        })
     }
 }
 
