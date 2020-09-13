@@ -3,7 +3,7 @@ use std::convert::{TryFrom, TryInto};
 
 type RawChunkType = [u8; 4];
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct ChunkType(RawChunkType);
 
 impl ChunkType {
@@ -32,26 +32,9 @@ impl ChunkType {
     }
 }
 
-impl Eq for ChunkType {}
-
-impl PartialEq for ChunkType {
-    fn eq(&self, other: &ChunkType) -> bool {
-        self.0 == other.0
-    }
-}
-
-impl std::convert::TryFrom<RawChunkType> for ChunkType {
-    type Error = Error;
-
-    fn try_from(chunk: RawChunkType) -> Result<ChunkType> {
-        if chunk
-            .iter()
-            .any(|&b| !b.is_ascii_lowercase() && !b.is_ascii_uppercase())
-        {
-            return Err(Error::InvalidChunkTypeCode);
-        }
-
-        Ok(ChunkType(chunk))
+impl std::fmt::Display for ChunkType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", String::from_utf8_lossy(&self.0))
     }
 }
 
@@ -59,20 +42,23 @@ impl std::str::FromStr for ChunkType {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<ChunkType> {
-        let chunk: std::result::Result<RawChunkType, _> = s.as_bytes().try_into();
-        match chunk {
-            Err(_) => Err(Error::InvalidChunkTypeCode),
-            Ok(chunk) => ChunkType::try_from(chunk),
-        }
+        let raw: RawChunkType = s.as_bytes().try_into()?;
+        ChunkType::try_from(raw)
     }
 }
 
-impl std::fmt::Display for ChunkType {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", unsafe {
-            // only valid chunk type code can be created
-            std::str::from_utf8_unchecked(&self.0)
-        })
+impl std::convert::TryFrom<RawChunkType> for ChunkType {
+    type Error = Error;
+
+    fn try_from(raw: RawChunkType) -> Result<ChunkType> {
+        if raw
+            .iter()
+            .any(|&b| !b.is_ascii_lowercase() && !b.is_ascii_uppercase())
+        {
+            return Err(Error::InvalidChunkType);
+        }
+
+        Ok(ChunkType(raw))
     }
 }
 
