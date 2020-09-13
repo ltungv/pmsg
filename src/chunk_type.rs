@@ -1,12 +1,13 @@
+use crate::{Error, Result};
 use std::convert::{TryFrom, TryInto};
 
-const CHUNK_TYPE_SIZE: usize = 4;
+type RawChunkType = [u8; 4];
 
 #[derive(Debug)]
-pub struct ChunkType([u8; CHUNK_TYPE_SIZE]);
+pub struct ChunkType(RawChunkType);
 
 impl ChunkType {
-    pub fn bytes(&self) -> [u8; 4] {
+    pub fn bytes(&self) -> RawChunkType {
         self.0
     }
 
@@ -39,15 +40,15 @@ impl PartialEq for ChunkType {
     }
 }
 
-impl TryFrom<[u8; CHUNK_TYPE_SIZE]> for ChunkType {
-    type Error = crate::Error;
+impl std::convert::TryFrom<RawChunkType> for ChunkType {
+    type Error = Error;
 
-    fn try_from(chunk: [u8; CHUNK_TYPE_SIZE]) -> crate::Result<ChunkType> {
+    fn try_from(chunk: RawChunkType) -> Result<ChunkType> {
         if chunk
             .iter()
             .any(|&b| !b.is_ascii_lowercase() && !b.is_ascii_uppercase())
         {
-            return Err(crate::Error::InvalidChunkTypeCode);
+            return Err(Error::InvalidChunkTypeCode);
         }
 
         Ok(ChunkType(chunk))
@@ -55,12 +56,12 @@ impl TryFrom<[u8; CHUNK_TYPE_SIZE]> for ChunkType {
 }
 
 impl std::str::FromStr for ChunkType {
-    type Err = crate::Error;
+    type Err = Error;
 
-    fn from_str(s: &str) -> crate::Result<ChunkType> {
-        let chunk: Result<[u8; CHUNK_TYPE_SIZE], _> = s.as_bytes().try_into();
+    fn from_str(s: &str) -> Result<ChunkType> {
+        let chunk: std::result::Result<RawChunkType, _> = s.as_bytes().try_into();
         match chunk {
-            Err(_) => Err(crate::Error::InvalidChunkTypeCode),
+            Err(_) => Err(Error::InvalidChunkTypeCode),
             Ok(chunk) => ChunkType::try_from(chunk),
         }
     }
