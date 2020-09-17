@@ -59,24 +59,30 @@ impl std::convert::TryFrom<&[u8]> for Chunk {
     type Error = Error;
 
     fn try_from(raw: &[u8]) -> Result<Chunk> {
-        let mut digest = crc32::Digest::new(crc32::IEEE);
         let mut r = std::io::BufReader::new(raw);
         let mut buf = [0u8; 4];
 
+        // parse chunk length
         r.read_exact(&mut buf)?;
         let length = u32::from_be_bytes(buf);
         if length > 1 << 31 {
             return Err(Error::InvalidChunkLength);
         }
 
+        // parse chunk type
         r.read_exact(&mut buf)?;
         let chunk_type = ChunkType::try_from(buf)?;
-        digest.write(&buf);
 
+        // parse chunk data
         let mut chunk_data = vec![0; length as usize];
         r.read_exact(&mut chunk_data)?;
+
+        // creating checksum from received data
+        let mut digest = crc32::Digest::new(crc32::IEEE);
+        digest.write(&buf);
         digest.write(&chunk_data);
 
+        // parse and check chunk checksum
         r.read_exact(&mut buf)?;
         let crc = u32::from_be_bytes(buf);
         if digest.sum32() != crc {

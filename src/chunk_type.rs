@@ -51,9 +51,9 @@ impl std::convert::TryFrom<RawChunkType> for ChunkType {
     type Error = Error;
 
     fn try_from(raw: RawChunkType) -> Result<ChunkType> {
-        if raw
+        if !raw
             .iter()
-            .any(|&b| !b.is_ascii_lowercase() && !b.is_ascii_uppercase())
+            .all(|&b| b >= 65 && b <= 90 || b >= 97 && b <= 122)
         {
             return Err(Error::InvalidChunkType);
         }
