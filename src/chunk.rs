@@ -12,6 +12,32 @@ use std::io::Read;
 /// it is an unsigned 32-bit integer, the largest possible value is only 2^31.
 /// The CRC checksum is computed from the chunk type bytes and chunk data bytes
 /// with the IEEE CRC32 polynomial using the methods described in ISO-3309.
+///
+/// # Examples
+///
+/// ```rust
+/// # use std::error::Error;
+/// # use pmsg::Chunk;
+/// # use std::convert::TryFrom;
+/// #
+/// # fn main() -> Result<(), Box<dyn Error>> {
+///     let data_length: u32 = 14;
+///     let chunk_type = b"bLOb";
+///     let chunk_data = b"THE CHUNK DATA";
+///     let crc: u32 = 4148869028;
+///
+///     let raw_chunk: Vec<u8> = data_length
+///         .to_be_bytes()
+///         .iter()
+///         .chain(chunk_type.iter())
+///         .chain(chunk_data.iter())
+///         .chain(crc.to_be_bytes().iter())
+///         .copied()
+///         .collect();
+///
+///     let chunk = Chunk::try_from(raw_chunk.as_ref())?;
+///     Ok(())
+/// # }
 #[derive(Debug)]
 pub struct Chunk {
     length: u32, // NOTE: this must not exceed 2^31
@@ -22,31 +48,187 @@ pub struct Chunk {
 
 impl Chunk {
     /// Get the length of the data contained in the chunk
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::error::Error;
+    /// # use pmsg::Chunk;
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let data_length: u32 = 14;
+    ///     let chunk_type = b"bLOb";
+    ///     let chunk_data = b"THE CHUNK DATA";
+    ///     let crc: u32 = 4148869028;
+    ///
+    ///     let raw_chunk: Vec<u8> = data_length
+    ///         .to_be_bytes()
+    ///         .iter()
+    ///         .chain(chunk_type.iter())
+    ///         .chain(chunk_data.iter())
+    ///         .chain(crc.to_be_bytes().iter())
+    ///         .copied()
+    ///         .collect();
+    ///
+    ///     let chunk = Chunk::try_from(raw_chunk.as_ref())?;
+    ///     assert_eq!(data_length, chunk.length());
+    ///     Ok(())
+    /// # }
     pub fn length(&self) -> u32 {
         self.length
     }
 
     /// Get the parsed type code of the chunk
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::error::Error;
+    /// # use pmsg::{Chunk, ChunkType};
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let data_length: u32 = 14;
+    ///     let chunk_type = b"bLOb";
+    ///     let chunk_data = b"THE CHUNK DATA";
+    ///     let crc: u32 = 4148869028;
+    ///
+    ///     let raw_chunk: Vec<u8> = data_length
+    ///         .to_be_bytes()
+    ///         .iter()
+    ///         .chain(chunk_type.iter())
+    ///         .chain(chunk_data.iter())
+    ///         .chain(crc.to_be_bytes().iter())
+    ///         .copied()
+    ///         .collect();
+    ///
+    ///     let chunk = Chunk::try_from(raw_chunk.as_ref())?;
+    ///     assert_eq!(ChunkType::try_from(*chunk_type)?, *chunk.chunk_type());
+    ///     Ok(())
+    /// # }
     pub fn chunk_type(&self) -> &ChunkType {
         &self.chunk_type
     }
 
     /// Get the data of the chunk in raw bytes
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::error::Error;
+    /// # use pmsg::Chunk;
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let data_length: u32 = 14;
+    ///     let chunk_type = b"bLOb";
+    ///     let chunk_data = b"THE CHUNK DATA";
+    ///     let crc: u32 = 4148869028;
+    ///
+    ///     let raw_chunk: Vec<u8> = data_length
+    ///         .to_be_bytes()
+    ///         .iter()
+    ///         .chain(chunk_type.iter())
+    ///         .chain(chunk_data.iter())
+    ///         .chain(crc.to_be_bytes().iter())
+    ///         .copied()
+    ///         .collect();
+    ///
+    ///     let chunk = Chunk::try_from(raw_chunk.as_ref())?;
+    ///     assert_eq!(chunk_data, chunk.data());
+    ///     Ok(())
+    /// # }
     pub fn data(&self) -> &[u8] {
         &self.chunk_data
     }
 
     /// Get the CRC checksum value of the chunk
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::error::Error;
+    /// # use pmsg::Chunk;
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let data_length: u32 = 14;
+    ///     let chunk_type = b"bLOb";
+    ///     let chunk_data = b"THE CHUNK DATA";
+    ///     let crc: u32 = 4148869028;
+    ///
+    ///     let raw_chunk: Vec<u8> = data_length
+    ///         .to_be_bytes()
+    ///         .iter()
+    ///         .chain(chunk_type.iter())
+    ///         .chain(chunk_data.iter())
+    ///         .chain(crc.to_be_bytes().iter())
+    ///         .copied()
+    ///         .collect();
+    ///
+    ///     let chunk = Chunk::try_from(raw_chunk.as_ref())?;
+    ///     assert_eq!(crc, chunk.crc());
+    ///     Ok(())
+    /// # }
     pub fn crc(&self) -> u32 {
         self.crc
     }
 
     /// Get the data of the chunk encoded as an UTF-8 string
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::error::Error;
+    /// # use pmsg::Chunk;
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let data_length: u32 = 14;
+    ///     let chunk_type = b"bLOb";
+    ///     let chunk_data = b"THE CHUNK DATA";
+    ///     let crc: u32 = 4148869028;
+    ///
+    ///     let raw_chunk: Vec<u8> = data_length
+    ///         .to_be_bytes()
+    ///         .iter()
+    ///         .chain(chunk_type.iter())
+    ///         .chain(chunk_data.iter())
+    ///         .chain(crc.to_be_bytes().iter())
+    ///         .copied()
+    ///         .collect();
+    ///
+    ///     let chunk = Chunk::try_from(raw_chunk.as_ref())?;
+    ///     assert_eq!(String::from_utf8(Vec::from(*chunk_data))?, chunk.data_as_string()?);
+    ///     Ok(())
+    /// # }
     pub fn data_as_string(&self) -> Result<String> {
         Ok(String::from_utf8(self.chunk_data.clone())?)
     }
 
     /// Get the whole chunk in bytes
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::error::Error;
+    /// # use pmsg::Chunk;
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let data_length: u32 = 14;
+    ///     let chunk_type = b"bLOb";
+    ///     let chunk_data = b"THE CHUNK DATA";
+    ///     let crc: u32 = 4148869028;
+    ///
+    ///     let raw_chunk: Vec<u8> = data_length
+    ///         .to_be_bytes()
+    ///         .iter()
+    ///         .chain(chunk_type.iter())
+    ///         .chain(chunk_data.iter())
+    ///         .chain(crc.to_be_bytes().iter())
+    ///         .copied()
+    ///         .collect();
+    ///
+    ///     let chunk = Chunk::try_from(raw_chunk.as_ref())?;
+    ///     assert_eq!(raw_chunk, chunk.as_bytes());
+    ///     Ok(())
+    /// # }
     pub fn as_bytes(&self) -> Vec<u8> {
         self.length
             .to_be_bytes()

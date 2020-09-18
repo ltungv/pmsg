@@ -16,19 +16,13 @@ type RawChunkType = [u8; 4];
 ///
 /// ```rust
 /// # use std::error::Error;
-/// # use pngme::ChunkType;
+/// # use pmsg::ChunkType;
 /// # use std::convert::TryFrom;
 /// #
 /// # fn main() -> Result<(), Box<dyn Error>> {
-///     let raw = [b'b', b'L', b'O', b'b'];
-///     let chunk_type = ChunkType::try_from(raw)?;
-///     assert_eq!(raw, chunk_type.bytes());
-///     assert!(!chunk_type.is_critical());
-///     assert!(chunk_type.is_public());
-///     assert!(chunk_type.is_reserved_bit_valid());
-///     assert!(chunk_type.is_safe_to_copy());
-///     assert!(chunk_type.is_valid());
-/// #   Ok(())
+///     let raw = b"bLOb";
+///     let chunk_type = ChunkType::try_from(*raw)?;
+///     Ok(())
 /// # }
 /// ```
 #[derive(Debug, PartialEq, Eq)]
@@ -40,13 +34,13 @@ impl ChunkType {
     ///
     /// ```rust
     /// # use std::error::Error;
-    /// # use pngme::ChunkType;
+    /// # use pmsg::ChunkType;
     /// # use std::convert::TryFrom;
     /// #
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    ///     let raw = [b'b', b'L', b'O', b'b'];
-    ///     let chunk_type = ChunkType::try_from(raw)?;
-    ///     assert_eq!(raw, chunk_type.bytes());
+    ///     let raw = b"bLOb";
+    ///     let chunk_type = ChunkType::try_from(*raw)?;
+    ///     assert_eq!(*raw, chunk_type.bytes());
     /// #   Ok(())
     /// # }
     /// ```
@@ -61,12 +55,12 @@ impl ChunkType {
     ///
     /// ```rust
     /// # use std::error::Error;
-    /// # use pngme::ChunkType;
+    /// # use pmsg::ChunkType;
     /// # use std::convert::TryFrom;
     /// #
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    ///     let raw = [b'b', b'L', b'O', b'b'];
-    ///     let chunk_type = ChunkType::try_from(raw)?;
+    ///     let raw = b"bLOb";
+    ///     let chunk_type = ChunkType::try_from(*raw)?;
     ///     assert!(!chunk_type.is_critical());
     /// #   Ok(())
     /// # }
@@ -82,12 +76,12 @@ impl ChunkType {
     ///
     /// ```rust
     /// # use std::error::Error;
-    /// # use pngme::ChunkType;
+    /// # use pmsg::ChunkType;
     /// # use std::convert::TryFrom;
     /// #
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    ///     let raw = [b'b', b'L', b'O', b'b'];
-    ///     let chunk_type = ChunkType::try_from(raw)?;
+    ///     let raw = b"bLOb";
+    ///     let chunk_type = ChunkType::try_from(*raw)?;
     ///     assert!(chunk_type.is_public());
     /// #   Ok(())
     /// # }
@@ -103,12 +97,12 @@ impl ChunkType {
     ///
     /// ```rust
     /// # use std::error::Error;
-    /// # use pngme::ChunkType;
+    /// # use pmsg::ChunkType;
     /// # use std::convert::TryFrom;
     /// #
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    ///     let raw = [b'b', b'L', b'O', b'b'];
-    ///     let chunk_type = ChunkType::try_from(raw)?;
+    ///     let raw = b"bLOb";
+    ///     let chunk_type = ChunkType::try_from(*raw)?;
     ///     assert!(chunk_type.is_reserved_bit_valid());
     /// #   Ok(())
     /// # }
@@ -124,12 +118,12 @@ impl ChunkType {
     ///
     /// ```rust
     /// # use std::error::Error;
-    /// # use pngme::ChunkType;
+    /// # use pmsg::ChunkType;
     /// # use std::convert::TryFrom;
     /// #
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    ///     let raw = [b'b', b'L', b'O', b'b'];
-    ///     let chunk_type = ChunkType::try_from(raw)?;
+    ///     let raw = b"bLOb";
+    ///     let chunk_type = ChunkType::try_from(*raw)?;
     ///     assert!(chunk_type.is_safe_to_copy());
     /// #   Ok(())
     /// # }
@@ -144,12 +138,12 @@ impl ChunkType {
     ///
     /// ```rust
     /// # use std::error::Error;
-    /// # use pngme::ChunkType;
+    /// # use pmsg::ChunkType;
     /// # use std::convert::TryFrom;
     /// #
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    ///     let raw = [b'b', b'L', b'O', b'b'];
-    ///     let chunk_type = ChunkType::try_from(raw)?;
+    ///     let raw = b"bLOb";
+    ///     let chunk_type = ChunkType::try_from(*raw)?;
     ///     assert!(chunk_type.is_valid());
     /// #   Ok(())
     /// # }
