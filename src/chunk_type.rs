@@ -12,19 +12,22 @@ type RawChunkType = [u8; 4];
 /// so that PNG decoder can make decision upon encountering invalid type codes.
 ///
 /// # Examples
+///
 /// ```rust
 /// # use std::error::Error;
+/// # use pngme::ChunkType;
+/// # use std::convert::TryFrom;
 /// #
 /// # fn main() -> Result<(), Box<dyn Error>> {
-/// chunk_type = ChunkType::from_str("bLOb")
-/// assert_eq!(b"bLOb", chunk_type.bytes())
-/// assert!(!chunk_type.is_critical())
-/// assert!(chunk_type.is_public())
-/// assert!(chunk_type.is_reserved_bit_valid())
-/// assert!(chunk_type.is_safe_to_copy())
-/// assert!(chunk_type.is_valid())
-/// #
-/// #     Ok(())
+///     let raw = [b'b', b'L', b'O', b'b'];
+///     let chunk_type = ChunkType::try_from(raw)?;
+///     assert_eq!(raw, chunk_type.bytes());
+///     assert!(!chunk_type.is_critical());
+///     assert!(chunk_type.is_public());
+///     assert!(chunk_type.is_reserved_bit_valid());
+///     assert!(chunk_type.is_safe_to_copy());
+///     assert!(chunk_type.is_valid());
+/// #   Ok(())
 /// # }
 /// ```
 #[derive(Debug, PartialEq, Eq)]
@@ -32,35 +35,124 @@ pub struct ChunkType(RawChunkType);
 
 impl ChunkType {
     /// Return the 4-byte array that was parsed.
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::error::Error;
+    /// # use pngme::ChunkType;
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let raw = [b'b', b'L', b'O', b'b'];
+    ///     let chunk_type = ChunkType::try_from(raw)?;
+    ///     assert_eq!(raw, chunk_type.bytes());
+    /// #   Ok(())
+    /// # }
+    /// ```
     pub fn bytes(&self) -> RawChunkType {
         self.0
     }
 
     /// A chunk is critical if the first byte is an uppercase
     /// ASCII letter, i.e., the fifth bit of the first byte is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::error::Error;
+    /// # use pngme::ChunkType;
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let raw = [b'b', b'L', b'O', b'b'];
+    ///     let chunk_type = ChunkType::try_from(raw)?;
+    ///     assert!(!chunk_type.is_critical());
+    /// #   Ok(())
+    /// # }
+    /// ```
     pub fn is_critical(&self) -> bool {
         self.0[0] >> 5 & 1 == 0
     }
 
     /// A chunk is public if the second byte is a lowercase
     /// ASCII letter, i.e., the fifth bit of the second byte is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::error::Error;
+    /// # use pngme::ChunkType;
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let raw = [b'b', b'L', b'O', b'b'];
+    ///     let chunk_type = ChunkType::try_from(raw)?;
+    ///     assert!(chunk_type.is_public());
+    /// #   Ok(())
+    /// # }
+    /// ```
     pub fn is_public(&self) -> bool {
         self.0[1] >> 5 & 1 == 0
     }
 
     /// The reserved bit is valid if the third byte is an uppercase
     /// ASCII letter, i.e., the fifth bit of the third byte is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::error::Error;
+    /// # use pngme::ChunkType;
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let raw = [b'b', b'L', b'O', b'b'];
+    ///     let chunk_type = ChunkType::try_from(raw)?;
+    ///     assert!(chunk_type.is_reserved_bit_valid());
+    /// #   Ok(())
+    /// # }
+    /// ```
     pub fn is_reserved_bit_valid(&self) -> bool {
         self.0[2] >> 5 & 1 == 0
     }
 
     /// A chunk is safe to copy if the fourth byte is a lowercase
     /// ASCII letter, i.e., the fifth bit of the forth byte is one.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::error::Error;
+    /// # use pngme::ChunkType;
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let raw = [b'b', b'L', b'O', b'b'];
+    ///     let chunk_type = ChunkType::try_from(raw)?;
+    ///     assert!(chunk_type.is_safe_to_copy());
+    /// #   Ok(())
+    /// # }
+    /// ```
     pub fn is_safe_to_copy(&self) -> bool {
         self.0[3] >> 5 & 1 == 1
     }
 
     /// A chunk is valid if the reserved bit is valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::error::Error;
+    /// # use pngme::ChunkType;
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let raw = [b'b', b'L', b'O', b'b'];
+    ///     let chunk_type = ChunkType::try_from(raw)?;
+    ///     assert!(chunk_type.is_valid());
+    /// #   Ok(())
+    /// # }
+    /// ```
     pub fn is_valid(&self) -> bool {
         self.is_reserved_bit_valid()
     }

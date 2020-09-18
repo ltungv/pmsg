@@ -3,6 +3,8 @@ use crate::{Error, Result};
 use crc::{crc32, Hasher32};
 use std::io::Read;
 
+/// Parse a chunk as described by the specifications of PNG files
+/// ([PNG Structure](http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html))
 #[derive(Debug)]
 pub struct Chunk {
     length: u32, // NOTE: this must not exceed 2^31

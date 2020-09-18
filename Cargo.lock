@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pngme"
+name = "pmsg"
 version = "0.1.0"
 dependencies = [
  "crc",
