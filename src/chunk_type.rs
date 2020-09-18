@@ -1,32 +1,66 @@
 use crate::{Error, Result};
 use std::convert::{TryFrom, TryInto};
 
+/// A 4-byte array
 type RawChunkType = [u8; 4];
 
+/// Parse 4-byte type codes which are described in the specifications of PNG files
+/// ([PNG Structure](http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html)).
+///
+/// Besides representing the type of the chunk, a type code also represents four
+/// properties through the used of upper-/lower-case ASCII alphabetic characters
+/// so that PNG decoder can make decision upon encountering invalid type codes.
+///
+/// # Examples
+/// ```rust
+/// # use std::error::Error;
+/// #
+/// # fn main() -> Result<(), Box<dyn Error>> {
+/// chunk_type = ChunkType::from_str("bLOb")
+/// assert_eq!(b"bLOb", chunk_type.bytes())
+/// assert!(!chunk_type.is_critical())
+/// assert!(chunk_type.is_public())
+/// assert!(chunk_type.is_reserved_bit_valid())
+/// assert!(chunk_type.is_safe_to_copy())
+/// assert!(chunk_type.is_valid())
+/// #
+/// #     Ok(())
+/// # }
+/// ```
 #[derive(Debug, PartialEq, Eq)]
 pub struct ChunkType(RawChunkType);
 
 impl ChunkType {
+    /// Return the 4-byte array that was parsed.
     pub fn bytes(&self) -> RawChunkType {
         self.0
     }
 
+    /// A chunk is critical if the first byte is an uppercase
+    /// ASCII letter, i.e., the fifth bit of the first byte is zero.
     pub fn is_critical(&self) -> bool {
         self.0[0] >> 5 & 1 == 0
     }
 
+    /// A chunk is public if the second byte is a lowercase
+    /// ASCII letter, i.e., the fifth bit of the second byte is zero.
     pub fn is_public(&self) -> bool {
         self.0[1] >> 5 & 1 == 0
     }
 
+    /// The reserved bit is valid if the third byte is an uppercase
+    /// ASCII letter, i.e., the fifth bit of the third byte is zero.
     pub fn is_reserved_bit_valid(&self) -> bool {
         self.0[2] >> 5 & 1 == 0
     }
 
+    /// A chunk is safe to copy if the fourth byte is a lowercase
+    /// ASCII letter, i.e., the fifth bit of the forth byte is one.
     pub fn is_safe_to_copy(&self) -> bool {
         self.0[3] >> 5 & 1 == 1
     }
 
+    /// A chunk is valid if the reserved bit is valid.
     pub fn is_valid(&self) -> bool {
         self.is_reserved_bit_valid()
     }
