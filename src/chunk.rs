@@ -3,8 +3,15 @@ use crate::{Error, Result};
 use crc::{crc32, Hasher32};
 use std::io::Read;
 
-/// Parse a chunk as described by the specifications of PNG files
-/// ([PNG Structure](http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html))
+/// Parse a chunk from bytes as described by the specifications of PNG files
+/// ([PNG Structure](http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html)).
+///
+/// A chunk consists of four pieces of data which are the length of the data in the
+/// chunk, the type code, the chunk data, and the checksum of the chunk.
+/// The chunk length is a four-byte unsigned integer in big-endian order, although
+/// it is an unsigned 32-bit integer, the largest possible value is only 2^31.
+/// The CRC checksum is computed from the chunk type bytes and chunk data bytes
+/// with the IEEE CRC32 polynomial using the methods described in ISO-3309.
 #[derive(Debug)]
 pub struct Chunk {
     length: u32, // NOTE: this must not exceed 2^31
@@ -14,26 +21,32 @@ pub struct Chunk {
 }
 
 impl Chunk {
+    /// Get the length of the data contained in the chunk
     pub fn length(&self) -> u32 {
         self.length
     }
 
+    /// Get the parsed type code of the chunk
     pub fn chunk_type(&self) -> &ChunkType {
         &self.chunk_type
     }
 
+    /// Get the data of the chunk in raw bytes
     pub fn data(&self) -> &[u8] {
         &self.chunk_data
     }
 
+    /// Get the CRC checksum value of the chunk
     pub fn crc(&self) -> u32 {
         self.crc
     }
 
+    /// Get the data of the chunk encoded as an UTF-8 string
     pub fn data_as_string(&self) -> Result<String> {
         Ok(String::from_utf8(self.chunk_data.clone())?)
     }
 
+    /// Get the whole chunk in bytes
     pub fn as_bytes(&self) -> Vec<u8> {
         self.length
             .to_be_bytes()

@@ -7,6 +7,7 @@ type RawChunkType = [u8; 4];
 /// Parse 4-byte type codes which are described in the specifications of PNG files
 /// ([PNG Structure](http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html)).
 ///
+/// The type code must consist only of upper-/lower-case alphabetic ASCII characters.
 /// Besides representing the type of the chunk, a type code also represents four
 /// properties through the used of upper-/lower-case ASCII alphabetic characters
 /// so that PNG decoder can make decision upon encountering invalid type codes.
