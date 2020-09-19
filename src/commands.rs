@@ -70,7 +70,9 @@ pub fn remove(matches: &clap::ArgMatches) -> Result<()> {
     let mut png = Png::try_from(png_data.as_ref())?;
 
     let chunk_type = matches.value_of("chunk_type").unwrap();
-    let removed = png.remove_chunk(chunk_type)?;
+    while let Ok(removed) = png.remove_chunk(chunk_type) {
+        println!("Remove {}", removed);
+    }
 
     let mut output = OpenOptions::new()
         .create(true)
@@ -78,8 +80,6 @@ pub fn remove(matches: &clap::ArgMatches) -> Result<()> {
         .write(true)
         .open(file_path)?;
     output.write_all(&png.as_bytes())?;
-
-    println!("Remove {}", removed);
     Ok(())
 }
 
