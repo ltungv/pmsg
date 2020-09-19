@@ -73,7 +73,7 @@ checksum = "f2f96b10ec2560088a8e76961b00d47107b3a625fecb76dedb29ee7ccbf98235"
 
 [[package]]
 name = "pmsg"
-version = "0.1.0"
+version = "1.0.1"
 dependencies = [
  "clap",
  "crc",
