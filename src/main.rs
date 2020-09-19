@@ -4,7 +4,7 @@ use pmsg::*;
 mod commands;
 
 fn main() -> Result<()> {
-    let version = "0.1.0";
+    let version = "1.0.0";
     let author = "Tung L. Vo <tlv8864@tutanota.com>";
 
     let matches = App::new("PMSG")
@@ -13,81 +13,81 @@ fn main() -> Result<()> {
         .about("Hide message(s) inside PNG file.")
         .subcommand(
             SubCommand::with_name("encode")
-                .about("Encode the given message inside the PNG file located at the given path.")
+                .about("Encode the message to the PNG file.")
                 .version(version)
                 .author(author)
                 .arg(
                     Arg::with_name("file")
-                        .help("Sets the input file to use")
+                        .help("PNG file")
                         .required(true)
                         .index(1),
                 )
                 .arg(
                     Arg::with_name("chunk_type")
-                        .help("Type code of the chunk containing the message")
+                        .help("Chunk type code of message")
                         .required(true)
                         .index(2),
                 )
                 .arg(
                     Arg::with_name("message")
-                        .help("The message to be encoded")
+                        .help("Hidden message")
                         .required(true)
                         .index(3),
                 )
                 .arg(
                     Arg::with_name("output")
-                        .help("Sets the output file to use")
+                        .help("Output file")
                         .required(false)
                         .index(4),
                 ),
         )
         .subcommand(
             SubCommand::with_name("decode")
-                .about("Decode the given message inside the PNG file located at the given path.")
+                .about("Decode hidden messages in the PNG file.")
                 .version(version)
                 .author(author)
                 .arg(
                     Arg::with_name("file")
-                        .help("Sets the input file to use")
+                        .help("PNG file")
                         .required(true)
                         .index(1),
                 )
                 .arg(
                     Arg::with_name("chunk_type")
-                        .help("Type code of the chunk containing the message")
+                        .help("Chunk type code of message")
                         .required(true)
                         .index(2),
                 ),
         )
         .subcommand(
             SubCommand::with_name("remove")
-                .about("Encode the given message inside the PNG file located at the given path.")
+                .about("Remove hidden messages in the PNG file.")
                 .version(version)
                 .author(author)
                 .arg(
                     Arg::with_name("file")
-                        .help("Sets the input file to use")
+                        .help("PNG file")
                         .required(true)
                         .index(1),
                 )
                 .arg(
                     Arg::with_name("chunk_type")
-                        .help("Type code of the chunk containing the message")
+                        .help("Chunk type code of message")
                         .required(true)
                         .index(2),
                 ),
         )
         .subcommand(
             SubCommand::with_name("print")
-                .about("Encode the given message inside the PNG file located at the given path.")
+                .about("Print raw data from the PNG file.")
                 .version(version)
                 .author(author)
                 .arg(
                     Arg::with_name("file")
-                        .help("Sets the input file to use")
+                        .help("PNG file")
                         .required(true)
                         .index(1),
-                ),
+                )
         )
         .get_matches();
 
