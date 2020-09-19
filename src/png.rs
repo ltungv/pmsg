@@ -76,26 +76,33 @@ impl std::convert::TryFrom<&[u8]> for Png {
             return Err(Self::Error::InvalidPNGFileHeader);
         }
 
-        while r.position() < (data.len() as u64) {
-            let mut length_buf = [0u8; 4];
+        // 4-byte length buffer
+        let mut length_buf = [0u8; 4];
+        while r.position() < data.len().try_into()? {
             r.read_exact(&mut length_buf)?;
-            let length: usize = u32::from_be_bytes(length_buf).try_into()?;
+            let chunk_length = u32::from_be_bytes(length_buf);
+            let mut chunk_length: usize = chunk_length.try_into()?;
+            chunk_length += 4 * 2;
 
-            let mut data_buf = vec![0; length + 4 * 2];
-            r.read_exact(&mut data_buf)?;
+            let mut chunk_data = vec![0u8; chunk_length];
+            r.read_exact(&mut chunk_data)?;
 
-            let raw_chunk: Vec<u8> = length_buf.iter().chain(data_buf.iter()).copied().collect();
-            let chunk = Chunk::try_from(raw_chunk.as_ref())?;
+            chunks.push(Chunk::try_from(
+                length_buf
+                    .iter()
+                    .chain(chunk_data.iter())
+                    .copied()
+                    .collect::<Vec<u8>>()
+                    .as_ref(),
+            )?);
 
-            chunks.push(chunk);
+            if chunks[0].chunk_type().bytes() != Png::START_CHUNK_TYPE {
+                return Err(Self::Error::InvalidStartingChunk);
+            }
 
-            // NOTE: Not checking for valid starting and ending chunks
-            // let chunk_type = chunk.chunk_type().bytes();
-            // if chunks.is_empty() && chunk_type != Png::START_CHUNK_TYPE {
-            //     return Err(Self::Error::InvalidStartingChunk);
-            // } else if chunk_type == Png::END_CHUNK_TYPE {
-            //     break;
-            // }
+            if chunks[chunks.len() - 1].chunk_type().bytes() == Png::END_CHUNK_TYPE {
+                break;
+            }
         }
 
         Ok(Self::from_chunks(chunks))
@@ -113,9 +120,9 @@ mod tests {
     fn testing_chunks() -> Vec<Chunk> {
         let mut chunks = Vec::new();
 
-        chunks.push(chunk_from_strings("FrSt", "I am the first chunk").unwrap());
+        chunks.push(chunk_from_strings("IHDR", "I am the first chunk").unwrap());
         chunks.push(chunk_from_strings("miDl", "I am another chunk").unwrap());
-        chunks.push(chunk_from_strings("LASt", "I am the last chunk").unwrap());
+        chunks.push(chunk_from_strings("IEND", "I am the last chunk").unwrap());
 
         chunks
     }
@@ -208,9 +215,9 @@ mod tests {
     #[test]
     fn test_chunk_by_type() {
         let png = testing_png();
-        let chunk = png.chunk_by_type("FrSt").unwrap();
-        assert_eq!(&chunk.chunk_type().to_string(), "FrSt");
-        assert_eq!(&chunk.data_as_string().unwrap(), "I am the first chunk");
+        let chunk = png.chunk_by_type("miDl").unwrap();
+        assert_eq!(&chunk.chunk_type().to_string(), "miDl");
+        assert_eq!(&chunk.data_as_string().unwrap(), "I am another chunk");
     }
 
     #[test]
