@@ -1,7 +1,6 @@
-use crate::{Chunk, ChunkType, Error, Result};
+use crate::{Chunk, Error, Result};
 use std::convert::TryInto;
 use std::io::{Cursor, Read};
-use std::str::FromStr;
 
 #[derive(Debug)]
 pub struct Png {
@@ -17,11 +16,11 @@ impl Png {
         Self { chunks }
     }
 
-    fn append_chunk(&mut self, chunk: Chunk) {
+    pub fn append_chunk(&mut self, chunk: Chunk) {
         self.chunks.push(chunk);
     }
 
-    fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
+    pub fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
         let pos = self
             .chunks
             .iter()
@@ -30,21 +29,21 @@ impl Png {
         Ok(self.chunks.remove(pos))
     }
 
-    fn header(&self) -> &[u8; 8] {
+    pub fn header(&self) -> &[u8; 8] {
         &Self::STANDARD_HEADER
     }
 
-    fn chunks(&self) -> &[Chunk] {
+    pub fn chunks(&self) -> &[Chunk] {
         &self.chunks
     }
 
-    fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
+    pub fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
         self.chunks
             .iter()
             .find(|c| c.chunk_type().bytes() == chunk_type.as_bytes())
     }
 
-    fn as_bytes(&self) -> Vec<u8> {
+    pub fn as_bytes(&self) -> Vec<u8> {
         let chunks_bytes: Vec<u8> = self.chunks.iter().flat_map(|c| c.as_bytes()).collect();
         Png::STANDARD_HEADER
             .iter()
@@ -95,14 +94,6 @@ impl std::convert::TryFrom<&[u8]> for Png {
                     .collect::<Vec<u8>>()
                     .as_ref(),
             )?);
-
-            if chunks[0].chunk_type().bytes() != Png::START_CHUNK_TYPE {
-                return Err(Self::Error::InvalidStartingChunk);
-            }
-
-            if chunks[chunks.len() - 1].chunk_type().bytes() == Png::END_CHUNK_TYPE {
-                break;
-            }
         }
 
         Ok(Self::from_chunks(chunks))
@@ -120,9 +111,9 @@ mod tests {
     fn testing_chunks() -> Vec<Chunk> {
         let mut chunks = Vec::new();
 
-        chunks.push(chunk_from_strings("IHDR", "I am the first chunk").unwrap());
+        chunks.push(chunk_from_strings("FrSt", "I am the first chunk").unwrap());
         chunks.push(chunk_from_strings("miDl", "I am another chunk").unwrap());
-        chunks.push(chunk_from_strings("IEND", "I am the last chunk").unwrap());
+        chunks.push(chunk_from_strings("LASt", "I am the last chunk").unwrap());
 
         chunks
     }
@@ -215,9 +206,9 @@ mod tests {
     #[test]
     fn test_chunk_by_type() {
         let png = testing_png();
-        let chunk = png.chunk_by_type("miDl").unwrap();
-        assert_eq!(&chunk.chunk_type().to_string(), "miDl");
-        assert_eq!(&chunk.data_as_string().unwrap(), "I am another chunk");
+        let chunk = png.chunk_by_type("FrSt").unwrap();
+        assert_eq!(&chunk.chunk_type().to_string(), "FrSt");
+        assert_eq!(&chunk.data_as_string().unwrap(), "I am the first chunk");
     }
 
     #[test]
