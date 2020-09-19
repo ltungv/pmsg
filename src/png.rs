@@ -94,6 +94,14 @@ impl std::convert::TryFrom<&[u8]> for Png {
                     .collect::<Vec<u8>>()
                     .as_ref(),
             )?);
+
+            if chunks[0].chunk_type().bytes() != Png::START_CHUNK_TYPE {
+                return Err(Self::Error::InvalidStartingChunk);
+            }
+
+            if chunks[chunks.len() - 1].chunk_type().bytes() == Png::END_CHUNK_TYPE {
+                break;
+            }
         }
 
         Ok(Self::from_chunks(chunks))
@@ -111,9 +119,9 @@ mod tests {
     fn testing_chunks() -> Vec<Chunk> {
         let mut chunks = Vec::new();
 
-        chunks.push(chunk_from_strings("FrSt", "I am the first chunk").unwrap());
+        chunks.push(chunk_from_strings("IHDR", "I am the first chunk").unwrap());
         chunks.push(chunk_from_strings("miDl", "I am another chunk").unwrap());
-        chunks.push(chunk_from_strings("LASt", "I am the last chunk").unwrap());
+        chunks.push(chunk_from_strings("IEND", "I am the last chunk").unwrap());
 
         chunks
     }
@@ -206,9 +214,9 @@ mod tests {
     #[test]
     fn test_chunk_by_type() {
         let png = testing_png();
-        let chunk = png.chunk_by_type("FrSt").unwrap();
-        assert_eq!(&chunk.chunk_type().to_string(), "FrSt");
-        assert_eq!(&chunk.data_as_string().unwrap(), "I am the first chunk");
+        let chunk = png.chunk_by_type("miDl").unwrap();
+        assert_eq!(&chunk.chunk_type().to_string(), "miDl");
+        assert_eq!(&chunk.data_as_string().unwrap(), "I am another chunk");
     }
 
     #[test]

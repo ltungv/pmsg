@@ -6,7 +6,7 @@ A command line application for encoding secret messages inside a PNG file, creat
 ## Usage
 
 ```bash
-PMSG 1.0.0
+PMSG 1.0.1
 Tung L. Vo <tlv8864@tutanota.com>
 Hide message(s) inside PNG file.
 

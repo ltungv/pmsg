@@ -4,7 +4,7 @@ use pmsg::*;
 mod commands;
 
 fn main() -> Result<()> {
-    let version = "1.0.0";
+    let version = "1.0.1";
     let author = "Tung L. Vo <tlv8864@tutanota.com>";
 
     let matches = App::new("PMSG")
