@@ -1,7 +1,8 @@
 use crate::chunk_type::ChunkType;
 use crate::{Error, Result};
 use crc::{crc32, Hasher32};
-use std::io::Read;
+use std::convert::TryInto;
+use std::io::{Cursor, Read};
 
 /// Parse a chunk from bytes as described by the specifications of PNG files
 /// ([PNG Structure](http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html)).
@@ -47,6 +48,46 @@ pub struct Chunk {
 }
 
 impl Chunk {
+    /// Create a new chunk from the given chunk type and chunk data
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use pmsg::{Chunk, ChunkType};
+    /// # use std::convert::TryFrom;
+    /// # use std::error::Error;
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    ///     let data_length: u32 = 14;
+    ///     let chunk_type = b"bLOb";
+    ///     let chunk_data = b"THE CHUNK DATA";
+    ///     let crc: u32 = 4148869028;
+    ///
+    ///     let chunk = Chunk::new(ChunkType::try_from(*chunk_type)?, chunk_data.to_vec())?;
+    ///     assert_eq!(data_length, chunk.length());
+    ///     assert_eq!(ChunkType::try_from(*chunk_type)?, *chunk.chunk_type());
+    ///     assert_eq!(*chunk_data, chunk.data());
+    ///     assert_eq!(crc, chunk.crc());
+    ///     Ok(())
+    /// # }
+    /// ```
+    pub fn new(chunk_type: ChunkType, chunk_data: Vec<u8>) -> Result<Self> {
+        if chunk_data.len() > 1 << 31 {
+            return Err(Error::InvalidChunkLength);
+        }
+
+        // creating checksum from received data
+        let mut digest = crc32::Digest::new(crc32::IEEE);
+        digest.write(&chunk_type.bytes());
+        digest.write(&chunk_data);
+
+        Ok(Self {
+            length: chunk_data.len().try_into()?,
+            chunk_type,
+            chunk_data,
+            crc: digest.sum32(),
+        })
+    }
+
     /// Get the length of the data contained in the chunk
     /// # Examples
     ///
@@ -255,15 +296,15 @@ impl std::fmt::Display for Chunk {
 impl std::convert::TryFrom<&[u8]> for Chunk {
     type Error = Error;
 
-    fn try_from(raw: &[u8]) -> Result<Chunk> {
-        let mut r = std::io::BufReader::new(raw);
+    fn try_from(raw: &[u8]) -> Result<Self> {
+        let mut r = Cursor::new(raw);
         let mut buf = [0u8; 4];
 
         // parse chunk length
         r.read_exact(&mut buf)?;
         let length = u32::from_be_bytes(buf);
         if length > 1 << 31 {
-            return Err(Error::InvalidChunkLength);
+            return Err(Self::Error::InvalidChunkLength);
         }
 
         // parse chunk type
@@ -271,7 +312,7 @@ impl std::convert::TryFrom<&[u8]> for Chunk {
         let chunk_type = ChunkType::try_from(buf)?;
 
         // parse chunk data
-        let mut chunk_data = vec![0; length as usize];
+        let mut chunk_data = vec![0; length.try_into()?];
         r.read_exact(&mut chunk_data)?;
 
         // creating checksum from received data
@@ -283,10 +324,10 @@ impl std::convert::TryFrom<&[u8]> for Chunk {
         r.read_exact(&mut buf)?;
         let crc = u32::from_be_bytes(buf);
         if digest.sum32() != crc {
-            return Err(Error::InvalidCRC);
+            return Err(Self::Error::InvalidCRC);
         }
 
-        Ok(Chunk {
+        Ok(Self {
             length,
             chunk_type,
             chunk_data,

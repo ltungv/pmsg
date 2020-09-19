@@ -162,7 +162,7 @@ impl std::fmt::Display for ChunkType {
 impl std::str::FromStr for ChunkType {
     type Err = Error;
 
-    fn from_str(s: &str) -> Result<ChunkType> {
+    fn from_str(s: &str) -> Result<Self> {
         let raw: RawChunkType = s.as_bytes().try_into()?;
         ChunkType::try_from(raw)
     }
@@ -171,15 +171,15 @@ impl std::str::FromStr for ChunkType {
 impl std::convert::TryFrom<RawChunkType> for ChunkType {
     type Error = Error;
 
-    fn try_from(raw: RawChunkType) -> Result<ChunkType> {
+    fn try_from(raw: RawChunkType) -> Result<Self> {
         if !raw
             .iter()
             .all(|&b| b >= 65 && b <= 90 || b >= 97 && b <= 122)
         {
-            return Err(Error::InvalidChunkType);
+            return Err(Self::Error::InvalidChunkType);
         }
 
-        Ok(ChunkType(raw))
+        Ok(Self(raw))
     }
 }
 
