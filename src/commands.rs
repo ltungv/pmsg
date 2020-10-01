@@ -65,7 +65,7 @@ pub fn decode(matches: &clap::ArgMatches) -> Result<()> {
     Ok(())
 }
 
-/// Parse the PNG image at the given path and remove the first encountered chunk whose type code is
+/// Parse the PNG image at the given path and remove the every chunk whose type code is
 /// equal to the given type code. The PNG data is then saved back to the input path.
 pub fn remove(matches: &clap::ArgMatches) -> Result<()> {
     let file_path = PathBuf::from(matches.value_of("file").unwrap());
