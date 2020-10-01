@@ -7,6 +7,8 @@ use std::io::{Cursor, Read};
 /// Parse a chunk from bytes as described by the specifications of PNG files
 /// ([PNG Structure](http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html)).
 ///
+/// Only valid chunk can be parsed.
+///
 /// A chunk consists of four pieces of data which are the length of the data in the
 /// chunk, the type code, the chunk data, and the checksum of the chunk.
 /// The chunk length is a four-byte unsigned integer in big-endian order, although

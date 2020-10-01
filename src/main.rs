@@ -1,7 +1,7 @@
-extern crate clap;
+mod commands;
+
 use clap::{App, Arg, SubCommand};
 use pmsg::*;
-mod commands;
 
 fn main() -> Result<()> {
     let version = "1.0.1";
@@ -87,7 +87,7 @@ fn main() -> Result<()> {
                         .help("PNG file")
                         .required(true)
                         .index(1),
-                )
+                ),
         )
         .get_matches();
 

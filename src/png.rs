@@ -7,19 +7,31 @@ pub struct Png {
     chunks: Vec<Chunk>,
 }
 
+/// Png represents a PNG file as a list of chunks, the details can be found in the specifications
+/// ([PNG Structure](http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html)).
+///
+/// Only valid PNG files can be parsed.
+///
+/// The first eight bytes of a PNG file always contain the same signature. This is used to indicate
+/// the remainder of the file contains a PNG image, which consists of a series of chunks begining
+/// with an "IHDR" chunk and ends with a "IEND" chunk. The "IEND" chunk can be used to recognize
+/// the EOF of the PNG image.
 impl Png {
     pub const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
     pub const START_CHUNK_TYPE: [u8; 4] = *b"IHDR";
     pub const END_CHUNK_TYPE: [u8; 4] = *b"IEND";
 
+    /// Construct the `Png` object from the list of input chunks.
     pub fn from_chunks(chunks: Vec<Chunk>) -> Self {
         Self { chunks }
     }
 
+    /// Add a chunk to the end of the list of chunk contained in the object.
     pub fn append_chunk(&mut self, chunk: Chunk) {
         self.chunks.push(chunk);
     }
 
+    /// Remove the first encountered chunk with the given chunk type code.
     pub fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
         let pos = self
             .chunks
@@ -29,20 +41,24 @@ impl Png {
         Ok(self.chunks.remove(pos))
     }
 
+    /// Return the eight bytes signature that is used to mark a PNG image.
     pub fn header(&self) -> &[u8; 8] {
         &Self::STANDARD_HEADER
     }
 
+    /// Return the list of chunks in the PNG image.
     pub fn chunks(&self) -> &[Chunk] {
         &self.chunks
     }
 
+    /// Return the chunk with the given chunk type code.
     pub fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
         self.chunks
             .iter()
             .find(|c| c.chunk_type().bytes() == chunk_type.as_bytes())
     }
 
+    /// Return the PNG file as bytes.
     pub fn as_bytes(&self) -> Vec<u8> {
         let chunks_bytes: Vec<u8> = self.chunks.iter().flat_map(|c| c.as_bytes()).collect();
         Png::STANDARD_HEADER
