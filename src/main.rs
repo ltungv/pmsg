@@ -5,17 +5,13 @@ use pmsg::*;
 
 fn main() -> Result<()> {
     let version = "1.0.1";
-    let author = "Tung L. Vo <tlv8864@tutanota.com>";
-
     let matches = App::new("PMSG")
         .version(version)
-        .author(author)
         .about("Hide message(s) inside PNG file.")
         .subcommand(
             SubCommand::with_name("encode")
                 .about("Encode the message to the PNG file.")
                 .version(version)
-                .author(author)
                 .arg(
                     Arg::with_name("file")
                         .help("PNG file")
@@ -45,7 +41,6 @@ fn main() -> Result<()> {
             SubCommand::with_name("decode")
                 .about("Decode hidden messages in the PNG file.")
                 .version(version)
-                .author(author)
                 .arg(
                     Arg::with_name("file")
                         .help("PNG file")
@@ -63,7 +58,6 @@ fn main() -> Result<()> {
             SubCommand::with_name("remove")
                 .about("Remove hidden messages in the PNG file.")
                 .version(version)
-                .author(author)
                 .arg(
                     Arg::with_name("file")
                         .help("PNG file")
@@ -81,7 +75,6 @@ fn main() -> Result<()> {
             SubCommand::with_name("print")
                 .about("Print raw data from the PNG file.")
                 .version(version)
-                .author(author)
                 .arg(
                     Arg::with_name("file")
                         .help("PNG file")
